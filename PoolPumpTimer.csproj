@@ -33,6 +33,7 @@
   </PropertyGroup>
   <Import Project="$(NetMfTargetsBaseDir)$(TargetFrameworkVersion)\CSharp.Targets" />
   <ItemGroup>
+    <Compile Include="AmbientLight.cs" />
     <Compile Include="ExternalTemp.cs" />
     <Compile Include="OperationMode.cs" />
     <Compile Include="OperationModes.cs" />

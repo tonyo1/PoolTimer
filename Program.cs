@@ -7,30 +7,26 @@ using SecretLabs.NETMF.Hardware.Netduino;
 namespace PoolPumpTimer
 {
     public class Program
-    {
-
-        //  private static OutputPort _Led;
-        //          _Led = new OutputPort(Pins.ONBOARD_LED, false);
-
-
-
+    {    
         public static void Main()
         {
             RelayController _relay = new RelayController();
 
-            OperationMode operationMode = new OperationMode();
+            OperationMode _operationMode = new OperationMode();
 
-            OutputPort board = new OutputPort(Pins.ONBOARD_LED, true);
+            OutputPort _onBoardLED = new OutputPort(Pins.ONBOARD_LED, true);
 
-
-
+            
             while (true)
             {
                 bool _relayState = false;
-                OperationModes _OperationMode = operationMode.CurrentMode;
+                OperationModes _OperationMode = _operationMode.CurrentMode;
 
-                bool lightLevelOK = ExternalTemp.TempLevelOK();
-                bool tempLevelOK = true;
+                // these two look ups are in the main loop to 
+                // light the leds to indicate state to the user
+                // without effecting the relay and even if the running state is "off"                
+                bool tempLevelOK = ExternalTemp.TempLevelOK();
+                bool lightLevelOK = AmbientLight.LightLevelOK();
 
                 if (_OperationMode == OperationModes.Prog)
                 {
@@ -48,8 +44,6 @@ namespace PoolPumpTimer
                 }
                 _relay.TurnOnOffRelay(_relayState);
             }
-
-
         }
     }
 }

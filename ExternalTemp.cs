@@ -106,35 +106,4 @@ namespace PoolPumpTimer
         }
 
     }
-
-
-
-
-    public class AmbientLight
-    {
-        private static readonly AnalogInput _light = new AnalogInput(Cpu.AnalogChannel.ANALOG_3);
-
-        private AmbientLight()
-        {
-
-        }
-
-
-        public static double GetLight()
-        {
-
-            double sampleSize = 10;
-            double val = 0;
-            for (int i = 0; i < sampleSize; i++)
-            {
-                val += _light.Read();
-            }
-
-            return val / sampleSize;
-        }
-
-
-
-
-    }
 }

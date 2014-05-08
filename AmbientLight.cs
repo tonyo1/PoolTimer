@@ -12,7 +12,7 @@ namespace PoolPumpTimer
         private static bool _cachedLightState = false;
         private static readonly AnalogInput _lightSensor = new AnalogInput(Cpu.AnalogChannel.ANALOG_3);
         private static readonly AnalogInput _lightThresholdSensor = new AnalogInput(Cpu.AnalogChannel.ANALOG_4);
-        private static readonly OutputPort _lightLevelLED = new OutputPort(Pins.GPIO_PIN_D7, false);
+        private static readonly OutputPort _lightLevelLED = new OutputPort(Pins.GPIO_PIN_D4, false);
 
         private AmbientLight()
         {

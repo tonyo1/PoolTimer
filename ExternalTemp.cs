@@ -11,7 +11,7 @@ namespace PoolPumpTimer
     {
         private static bool _cachedLightLevelOK = false;
         private static readonly AnalogInput _thermoInput = new AnalogInput(Cpu.AnalogChannel.ANALOG_5);
-        private static readonly AnalogInput _thermoSetter = new AnalogInput(Cpu.AnalogChannel.ANALOG_0);
+        private static readonly AnalogInput _thermoSetter = new AnalogInput(Cpu.AnalogChannel.ANALOG_2);
         private static readonly OutputPort _thermoLED = new OutputPort(Pins.GPIO_PIN_D2, false);
 
         private ExternalTemp()

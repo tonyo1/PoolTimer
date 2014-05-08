@@ -14,7 +14,7 @@ namespace PoolPumpTimer
 
             OperationMode _operationMode = new OperationMode();
 
-            OutputPort _onBoardLED = new OutputPort(Pins.ONBOARD_LED, true);
+            _operationMode.PowerOnBlink();
 
             
             while (true)

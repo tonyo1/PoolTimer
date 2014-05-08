@@ -68,8 +68,7 @@ namespace PoolPumpTimer
             double celc = ((thermoInput * 3.3) - 0.500) * 100.0;
             double fer = celc;
             fer *= 9; fer /= 5; fer += 32;
-
-            
+                   
             if (_cachedLightLevelOK)
             {
                 tempLevelOK = fer >= StartTemperature(settervoltage) - 1;

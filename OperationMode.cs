@@ -30,7 +30,7 @@ namespace PoolPumpTimer
         public OperationModes CurrentMode
         {
             get
-            {       
+            {
                 return _operationMode;
             }
         }
@@ -71,7 +71,7 @@ namespace PoolPumpTimer
                         PowerLedSet(false);
                         break;
                 }
-              
+
             }
         }
 
@@ -93,13 +93,25 @@ namespace PoolPumpTimer
         private void PowerLedSet(bool IsOn)
         {
             if (_cachedState != IsOn)
-            { 
-              _powerLED.Write(IsOn);
-              _cachedState = IsOn;
-            }        
+            {
+                _powerLED.Write(IsOn);
+                _cachedState = IsOn;
+            }
         }
 
-        
-      
+
+        public void PowerOnBlink()
+        {
+          
+            bool state = true;
+            for (int i = 0; i < 10; i++)
+            {
+                PowerLedSet(state);
+                state = state ? false : true;
+                Thread.Sleep(100);
+            }
+        }
+
+
     }
 }

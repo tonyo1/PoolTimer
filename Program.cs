@@ -7,9 +7,13 @@ using SecretLabs.NETMF.Hardware.Netduino;
 namespace PoolPumpTimer
 {
     public class Program
-    {    
+    {
+        public static DateTime LastUpdateTime = DateTime.Now;
+        
+        
         public static void Main()
         {
+            
             RelayController _relay = new RelayController();
 
             OperationMode _operationMode = new OperationMode();

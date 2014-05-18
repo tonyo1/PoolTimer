@@ -12,7 +12,7 @@ namespace PoolPumpTimer
         private static bool _cachedLightLevelOK = false;
         private static readonly AnalogInput _thermoInput = new AnalogInput(Cpu.AnalogChannel.ANALOG_5);
         private static readonly AnalogInput _thermoSetter = new AnalogInput(Cpu.AnalogChannel.ANALOG_2);
-        private static readonly OutputPort _thermoLED = new OutputPort(Pins.GPIO_PIN_D2, false);
+        private static readonly OutputPort _thermoLED = new OutputPort(Pins.GPIO_PIN_D10, false);
 
         private ExternalTemp()
         {
@@ -68,7 +68,10 @@ namespace PoolPumpTimer
             double celc = ((thermoInput * 3.3) - 0.500) * 100.0;
             double fer = celc;
             fer *= 9; fer /= 5; fer += 32;
-                   
+
+
+         
+
             if (_cachedLightLevelOK)
             {
                 tempLevelOK = fer >= StartTemperature(settervoltage) - 1;

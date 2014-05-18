@@ -11,69 +11,111 @@ namespace PoolPumpTimer
 {
     public class OperationMode
     {
-        private bool _cachedState = false;
+
+
+        private DateTime btnLastClickedTime;
+        private bool pwrButtonOn;
+        private bool prgButtonOn;
+
+        private OperationModes _operationMode;
+
+
         private InterruptPort _powerButton;
+        private InterruptPort _programButton;
         private readonly OutputPort _powerLED;
-        private OperationModes _operationMode = OperationModes.Off;
-        Thread t1;
+        private readonly OutputPort _programLED;
+
+
+        Thread t2;
 
         public OperationMode()
         {
-            _powerButton = new InterruptPort(Pins.GPIO_PIN_D1, _cachedState, Port.ResistorMode.Disabled, Port.InterruptMode.InterruptEdgeBoth);
-            _powerButton.OnInterrupt += new NativeEventHandler(button_OnInterrupt);
-            this._powerLED = new OutputPort(Pins.GPIO_PIN_D0, false);
-            t1 = new Thread(new ThreadStart(blinkey));
-            t1.Priority = ThreadPriority.Lowest;
+            _powerButton = new InterruptPort(Pins.GPIO_PIN_D0, true, Port.ResistorMode.PullUp, Port.InterruptMode.InterruptEdgeBoth);
+            _programButton = new InterruptPort(Pins.GPIO_PIN_D1, true, Port.ResistorMode.PullUp, Port.InterruptMode.InterruptEdgeBoth);
+
+            _powerButton.OnInterrupt += _powerButton_OnInterrupt;
+            _programButton.OnInterrupt += _programButton_OnInterrupt;
+
+            this._powerLED = new OutputPort(Pins.GPIO_PIN_D8, true);
+            this._programLED = new OutputPort(Pins.GPIO_PIN_D9, true);
+
+            t2 = new Thread(new ThreadStart(blinkey));
+            t2.Priority = ThreadPriority.Lowest;
+            t2.Start();
+
+            // if we power cycle in the on position stay off to force the button click
+            _operationMode = OperationModes.Off;
+
+        
+
         }
 
-        DateTime _buttonPresstime = DateTime.Now;
+        void _powerButton_OnInterrupt(uint data1, uint data2, DateTime time)
+        {
+            if (btnLastClickedTime.AddMilliseconds(50) < DateTime.Now)// debounce
+            {
+                btnLastClickedTime = DateTime.Now;
+                Program.LastUpdateTime = DateTime.MinValue;
+                PwrButtonOn = data2 == 0 ? false : true;
+                if (PwrButtonOn) PrgButtonOn = _programButton.Read();
+                onButtonStateChanged();
+
+            }            
+        }
+
+        void _programButton_OnInterrupt(uint data1, uint data2, DateTime time)
+        {
+            if (btnLastClickedTime.AddMilliseconds(50) < DateTime.Now)// debounce
+            {
+                btnLastClickedTime = DateTime.Now;
+                Program.LastUpdateTime = DateTime.MinValue;
+                PrgButtonOn = data2 == 0 ? false : true;
+                onButtonStateChanged();
+            }
+        }
+
+        public bool PwrButtonOn
+        {
+            get
+            {
+                return pwrButtonOn;
+            }
+            set
+            {
+                if (pwrButtonOn != value)
+                {
+                    pwrButtonOn = value;
+                    onButtonStateChanged();
+                }
+                
+            }
+        }
+        public bool PrgButtonOn
+        {
+            get
+            {
+                return prgButtonOn;
+            }
+            set
+            {
+                if (prgButtonOn != value)
+                {
+                    Debug.Print("PrgButtonOn val changed from " + prgButtonOn + " to " + value);
+                    prgButtonOn = value;
+                    onButtonStateChanged();
+                }
+            }
+        }
+
         public OperationModes CurrentMode
         {
             get
             {
+
                 return _operationMode;
             }
         }
-        private void button_OnInterrupt(uint port, uint data, DateTime time)
-        {
-
-            if (data == 1 && _buttonPresstime.AddMilliseconds(300) < time)
-            {
-                if (t1.ThreadState == ThreadState.Running)
-                {
-                    t1.Suspend();
-                    while (t1.ThreadState != ThreadState.Suspended)
-                    {
-                        // spin until the blinky stops
-                    }
-                }
-                _buttonPresstime = DateTime.Now;
-                switch (CurrentMode)
-                {
-                    case OperationModes.Off:
-                        _operationMode = OperationModes.On;
-                        PowerLedSet(true);
-                        break;
-                    case OperationModes.On:
-                        PowerLedSet(false);
-                        _operationMode = OperationModes.Prog;
-                        if (t1.ThreadState == ThreadState.Unstarted)
-                        {
-                            t1.Start();
-                        }
-                        else
-                        {
-                            t1.Resume();
-                        }
-                        break;
-                    case OperationModes.Prog:
-                        _operationMode = OperationModes.Off;
-                        PowerLedSet(false);
-                        break;
-                }
-
-            }
-        }
+        
 
         private void blinkey()
         {
@@ -83,33 +125,57 @@ namespace PoolPumpTimer
             {
                 if (_time.AddMilliseconds(350) <= DateTime.Now)
                 {
-                    blinkyBool = (blinkyBool) ? false : true;
-                    _time = DateTime.Now;
-                    PowerLedSet(blinkyBool);
+                    if (_operationMode == OperationModes.Prog)
+                    {
+                        blinkyBool = (blinkyBool) ? false : true;
+                        _time = DateTime.Now;
+                        _programLED.Write(blinkyBool);
+                    }
                 }
             }
         }
 
-        private void PowerLedSet(bool IsOn)
-        {
-            if (_cachedState != IsOn)
-            {
-                _powerLED.Write(IsOn);
-                _cachedState = IsOn;
-            }
-        }
-
-
         public void PowerOnBlink()
         {
-          
+
             bool state = true;
             for (int i = 0; i < 10; i++)
             {
-                PowerLedSet(state);
+                _powerLED.Write(state);
                 state = state ? false : true;
                 Thread.Sleep(100);
             }
+            onButtonStateChanged();
+        }
+        private void onButtonStateChanged()
+        {
+            if (!PwrButtonOn)
+            {
+                _operationMode = OperationModes.Off;
+                _powerLED.Write(false);
+                _programLED.Write(false);
+                return;
+            }
+            else
+            {
+                _powerLED.Write(true);
+                _programLED.Write(true);
+            }
+
+            if (PwrButtonOn)
+            {
+                if (PrgButtonOn)
+                {
+                    _operationMode = OperationModes.Prog;
+                }
+                else
+                {
+                    _operationMode = OperationModes.On;
+                    _programLED.Write(true);
+                }
+                return;
+            }
+
         }
 
 
